@@ -1,0 +1,11 @@
+Filename: /u/joshuajw/scratchdisk/m4_catalog/thirddownload_data/WFI.1999-08-16T23:53:13.108.fits
+No.    Name         Type      Cards   Dimensions   Format
+0    PRIMARY     PrimaryHDU     108   ()              
+1    WIN1.CHIP1.OUT1  ImageHDU        51   (2142, 4128)   int16   
+2    WIN1.CHIP2.OUT1  ImageHDU        51   (2142, 4128)   int16   
+3    WIN1.CHIP3.OUT1  ImageHDU        51   (2142, 4128)   int16   
+4    WIN1.CHIP4.OUT1  ImageHDU        51   (2142, 4128)   int16   
+5    WIN1.CHIP8.OUT1  ImageHDU        51   (2142, 4128)   int16   
+6    WIN1.CHIP7.OUT1  ImageHDU        51   (2142, 4128)   int16   
+7    WIN1.CHIP6.OUT1  ImageHDU        51   (2142, 4128)   int16   
+8    WIN1.CHIP5.OUT2  ImageHDU        51   (2142, 4128)   int16   

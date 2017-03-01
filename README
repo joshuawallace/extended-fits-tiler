@@ -1,0 +1,2 @@
+This code will take a fits file with extensions as input and then output a 
+single fits file with all the images tiled together.
