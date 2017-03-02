@@ -15,8 +15,8 @@ import sys
 import numpy as np
 
 # Make sure we have at least one command line argument
-if len(sys.argv) !=2:
-    raise RuntimeError("I was expecting a command line argument: the name of the fits file to stitch together")
+if len(sys.argv) !=2 and len(sys.argv) != 3:
+    raise RuntimeError("I was expecting at least one command line argument:\n the name of the fits file to stitch together\n the name of the output file (optional)")
 
 # Open the fits file
 hdulist = fits.open(sys.argv[1])
@@ -127,3 +127,12 @@ for i in range(y_size):
         x_start += naxis12[index][0]
         
     y_start += naxis12[indices_of_positions[i][0]][1]
+
+#output_hdu = fits.PrimaryHDU(data=image_array, header=primary_hdu)
+output_hdu = fits.PrimaryHDU(data=image_array)
+
+if len(sys.argv) == 3:
+    output_file = sys.argv[2]
+else:
+    output_file = "output.fits"
+output_hdu.writeto(output_file)
