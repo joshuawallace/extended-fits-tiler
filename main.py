@@ -50,27 +50,53 @@ primary_hdu = primary_hdu[0]
 
 # Get list of which HDU's are image HDU's, print out their number
 list_of_image_hdus = [hdulist[i] for i in range(len(hdulist)) if "ImageHDU" in info[i] ]
+if not list_of_image_hdus:
+    list_of_image_hdus = [hdulist[i] for i in range(len(hdulist)) if "CompImageHDU" in info[i] ]
 print "Number of specifically ImageHDU's: " + str(len(list_of_image_hdus))
 
-#Define various empty lists for collecting useful info
+# print list_of_image_hdus[0].header
+# print list_of_image_hdus[1].header
+
+# Define various empty lists for collecting useful info
 naxis12 = []
 npixeslusedxy = []
 gapsize = []
 locationinarray = []
 
+# Figure out if there is header information on the gap between chips
+there_is_gap_data = True
+
+# Use this set of strings to find the correct version of "CHIP" that appears in the header
+chip_strings = ["CHIP ", "CHIP1 ", "CHIP2 ", "CHIP3 ", "CHIP4 ", "CHIP5 ", "CHIP6 ", "CHIP7 ", "CHIP8 ", "CHIP9 ", "CHIP10 "]
+
 for i in range(len(list_of_image_hdus)):
+    # First figure out whether the word "CHIP" appears or one with numbers
+    keys = list_of_image_hdus[i].header.keys() # Get all the header keys
+    for j in range(len(chip_strings)):
+        if any(chip_strings[j] in item for item in keys):
+            chip_to_use = chip_strings[j] # Use this chip_strings
+            break
+    else:
+        raise RuntimeError("Was unable to find correct version of CHIPS to use based on the header information")
+        
+
     # The number of axes of each individual set of data
     naxis12.append( (int(list_of_image_hdus[i].header['NAXIS1']), 
                      int(list_of_image_hdus[i].header['NAXIS2'])) )
     # The number of pixels in each individual set of data
-    npixeslusedxy.append( (int(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP NX']), 
-                           int(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP NY'])) )
+    npixeslusedxy.append( (int(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'NX']), 
+                           int(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'NY'])) )
     # The size of the gap between data images
-    gapsize.append( (float(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP XGAP']), 
-                     float(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP YGAP'])) )
+    try:
+        gapsize.append( (float(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'XGAP']), 
+                         float(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'YGAP'])) )
+    except KeyError:
+        if there_is_gap_data == True:
+            print "There is no gap data in the headers"
+            there_is_gap_data = False
     # The location of the image inside the larger array of images
-    locationinarray.append( (int(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP X']), 
-                             int(list_of_image_hdus[i].header['HIERARCH ESO DET CHIP Y'])) )
+    locationinarray.append( (int(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'X']), 
+                             int(list_of_image_hdus[i].header['HIERARCH ESO DET ' + chip_to_use + 'Y'])) )
 
 # Figure out which x and y positions in the array of image there are
 x_positions = []
@@ -82,6 +108,9 @@ for i in range(len(list_of_image_hdus)):
 # Remove duplicate values from the list
 x_positions = list(set(x_positions))
 y_positions = list(set(y_positions))
+
+print x_positions
+print y_positions
 
 # Figure out dimensions of array of individual images
 x_size = max(x_positions)
@@ -114,11 +143,17 @@ print indices_of_positions
 x_pixel_size = y_pixel_size = 0
 for i in range(len(indices_of_positions)): # Figure out y pixel size
     index = indices_of_positions[i][0]
-    y_pixel_size += naxis12[index][1] + int(gapsize[index][1])
+    if there_is_gap_data:
+        y_pixel_size += naxis12[index][1] + int(gapsize[index][1])
+    else:
+        y_pixel_size += naxis12[index][1]
 
 for i in range(len(indices_of_positions[0])): # Figure out x pixel size
     index = indices_of_positions[0][i]
-    x_pixel_size += naxis12[index][0] + int(gapsize[index][0])
+    if there_is_gap_data:
+        x_pixel_size += naxis12[index][0] + int(gapsize[index][0])
+    else:
+        x_pixel_size += naxis12[index][0]
 
 # Print out the pixel size
 print "X pixel size of final image: " + str(x_pixel_size)
